@@ -9,8 +9,14 @@
 (defonce app-state (atom {}))
 
 (defn update-country [owner]
-  (let [country-name (.country (js/Chance.) #js {:full true})]
-    (om/set-state! owner :country-name country-name)))
+  (let [country-name (.country (js/Chance.) #js {:full true})
+        encoded-country-name (js/encodeURIComponent country-name)]
+    (-> (js/fetch (str "https://country-images.herokuapp.com/image?q="
+                       encoded-country-name))
+        (.then #(.json %))
+        (.then (fn [data]
+                 (om/set-state! owner :country-name country-name)
+                 (om/set-state! owner :image-src (aget data "url")))))))
 
 (defn app-view [data owner]
   (reify
@@ -25,7 +31,10 @@
     (render-state [this state]
       (dom/div nil
         (dom/div nil
-          (dom/h2 nil (:country-name state)))
+          (dom/h2 nil (:country-name state))
+          (dom/div nil
+            (dom/img #js {:className "country-image"
+                          :src (:image-src state)})))
         (dom/button #js {:className "update-button"
                          :onClick #(update-country owner)}
           "Update")))))
