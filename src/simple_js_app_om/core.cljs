@@ -9,22 +9,19 @@
 
 ;; define your app data so that it doesn't get over-written on reload
 
-(defonce app-state (atom {}))
-
 (defn update-country [owner]
-  (om/set-state! owner :visible false)
+  (om/update-state! owner #(merge % {:visible false
+                                     :image-src ""}))
   (let [country-name (.country (js/Chance.) #js {:full true})
         encoded-country-name (js/encodeURIComponent country-name)]
     (go (let [response (<! (http/get
                              (str "https://country-images.herokuapp.com/image?q="
                                   encoded-country-name)
                              {:with-credentials? false}))]
-          (om/set-state! owner :image-src "")
-          (js/requestAnimationFrame
-            (fn []
-              (om/set-state! owner :country-name country-name)
-              (om/set-state! owner :image-src (:url (:body response)))
-              (om/set-state! owner :visible true)))))))
+          (om/update-state! owner #(merge %
+            {:country-name country-name
+             :image-src (:url (:body response))
+             :visible true}))))))
 
 (defn app-view [data owner]
   (reify
@@ -37,7 +34,7 @@
     (will-mount [_]
       (update-country owner))
     om/IRenderState
-    (render-state [this state]
+    (render-state [_ state]
       (dom/div nil
         (dom/div #js {:style #js {:opacity (if (:visible state) 1 0)}}
           (dom/h2 nil (:country-name state))
@@ -48,7 +45,5 @@
                          :onClick #(update-country owner)}
           "Update")))))
 
-(om/root app-view app-state
+(om/root app-view nil
   {:target (.-body js/document)})
-
-
