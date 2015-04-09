@@ -1,6 +1,9 @@
 (ns ^:figwheel-always simple-js-app-om.core
+    (:require-macros [cljs.core.async.macros :refer [go]])
     (:require [om.core :as om :include-macros true]
-              [om.dom :as dom :include-macros true]))
+              [om.dom :as dom :include-macros true]
+              [cljs.core.async :refer [<!]]
+              [cljs-http.client :as http]))
 
 (enable-console-print!)
 
@@ -11,12 +14,12 @@
 (defn update-country [owner]
   (let [country-name (.country (js/Chance.) #js {:full true})
         encoded-country-name (js/encodeURIComponent country-name)]
-    (-> (js/fetch (str "https://country-images.herokuapp.com/image?q="
-                       encoded-country-name))
-        (.then #(.json %))
-        (.then (fn [data]
-                 (om/set-state! owner :country-name country-name)
-                 (om/set-state! owner :image-src (aget data "url")))))))
+    (go (let [response (<! (http/get
+                             (str "https://country-images.herokuapp.com/image?q="
+                                  encoded-country-name)
+                             {:with-credentials? false}))]
+          (om/set-state! owner :country-name country-name)
+          (om/set-state! owner :image-src (:url (:body response)))))))
 
 (defn app-view [data owner]
   (reify
