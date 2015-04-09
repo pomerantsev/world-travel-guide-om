@@ -12,7 +12,7 @@
 (defn update-country [owner]
   (om/update-state! owner #(merge % {:visible false
                                      :image-src ""}))
-  (go (let [{:keys [country-name image-src]} (<! (country-service/update-country))]
+  (go (let [{:keys [country-name image-src]} (<! country-service/country-updater)]
         (om/update-state! owner
                           #(merge % {:country-name country-name
                                      :image-src image-src
