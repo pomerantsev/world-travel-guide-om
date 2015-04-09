@@ -3,7 +3,7 @@
     (:require [om.core :as om :include-macros true]
               [om.dom :as dom :include-macros true]
               [cljs.core.async :refer [<!]]
-              [cljs-http.client :as http]))
+              [simple-js-app-om.services.country-service :as country-service]))
 
 (enable-console-print!)
 
@@ -12,16 +12,11 @@
 (defn update-country [owner]
   (om/update-state! owner #(merge % {:visible false
                                      :image-src ""}))
-  (let [country-name (.country (js/Chance.) #js {:full true})
-        encoded-country-name (js/encodeURIComponent country-name)]
-    (go (let [response (<! (http/get
-                             (str "https://country-images.herokuapp.com/image?q="
-                                  encoded-country-name)
-                             {:with-credentials? false}))]
-          (om/update-state! owner #(merge %
-            {:country-name country-name
-             :image-src (:url (:body response))
-             :visible true}))))))
+  (go (let [{:keys [country-name image-src]} (<! (country-service/update-country))]
+        (om/update-state! owner
+                          #(merge % {:country-name country-name
+                                     :image-src image-src
+                                     :visible true})))))
 
 (defn app-view [data owner]
   (reify
