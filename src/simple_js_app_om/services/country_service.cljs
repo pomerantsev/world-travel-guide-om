@@ -5,12 +5,10 @@
 
 (defn update-country []
   (let [country-name (.country (js/Chance.) #js {:full true})
-        encoded-country-name (js/encodeURIComponent country-name)
-        updater (chan)]
+        encoded-country-name (js/encodeURIComponent country-name)]
     (go (let [response (<! (http/get
                              (str "https://country-images.herokuapp.com/image?q="
                                   encoded-country-name)
                              {:with-credentials? false}))]
-          (>! updater {:country-name country-name
-                       :image-src (:url (:body response))})))
-    updater))
+          {:country-name country-name
+           :image-src (:url (:body response))}))))
