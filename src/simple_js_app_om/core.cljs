@@ -9,14 +9,18 @@
 (defonce app-state (atom {}))
 
 (defn update-country [owner]
-  (om/set-state! owner :country-name "Peru"))
+  (let [country-name (.country (js/Chance.) #js {:full true})]
+    (om/set-state! owner :country-name country-name)))
 
 (defn app-view [data owner]
   (reify
     om/IInitState
     (init-state [_]
-      {:country-name "Bolivia"
+      {:country-name ""
        :image-src ""})
+    om/IWillMount
+    (will-mount [_]
+      (update-country owner))
     om/IRenderState
     (render-state [this state]
       (dom/div nil

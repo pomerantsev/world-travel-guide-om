@@ -1,0 +1,19 @@
+{
+  "name": "simple-js-app-om",
+  "version": "0.0.0",
+  "authors": [
+    "Pavel Pomerantsev <pomerantsevp@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "resources/public/bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "chance": "~0.7.3"
+  }
+}
